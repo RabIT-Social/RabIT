@@ -15,19 +15,19 @@ datasource db {
 }
 
 model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    private   Boolean  @default(false)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id              String   @id
+    content         String
+    onlySubscribers Boolean  @default(false)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
 
-    createdById Int
+    createdById String
     comments    Comment[]
     reactions   Reaction[]
     media       Media[]
     createdBy   Profile    @relation(fields: [createdById], references: [id])
 
-    @@index([name])
+    @@index([createdById])
 }
 
 // Necessary for Next auth
@@ -77,64 +77,64 @@ model VerificationToken {
 }
 
 model Subscription {
-    id           Int     @id @default(autoincrement())
-    subscriberId Int
+    id           String  @id
+    subscriberId String
     subscriber   Profile @relation(name: "Subscribers", fields: [subscriberId], references: [id])
-    creatorId    Int
+    creatorId    String
     creator      Profile @relation(name: "Subscriptions", fields: [creatorId], references: [id])
 
     @@index([subscriberId, creatorId])
 }
 
 model Comment {
-    id        Int      @id @default(autoincrement())
+    id        String   @id
     content   String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    postId Int
-    post   Post @relation(fields: [postId], references: [id])
+    postId String
+    post   Post   @relation(fields: [postId], references: [id])
 
-    createdById Int
+    createdById String
     createdBy   Profile @relation(fields: [createdById], references: [id])
 
     @@index([postId, createdById])
 }
 
 model Reaction {
-    id           String  @id @default(cuid())
+    id           String  @id
     reactionType String
-    postId       Int
+    postId       String
     post         Post    @relation(fields: [postId], references: [id])
-    creatorId    Int
-    creator      Profile @relation(fields: [creatorId], references: [id])
+    reactorId    String
+    reactor      Profile @relation(fields: [reactorId], references: [id])
 
-    @@index([postId, creatorId])
+    @@index([postId, reactorId])
 }
 
 model Media {
-    id        Int      @id @default(autoincrement())
+    id        String   @id
     url       String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    postId  Int
+    postId  String
     post    Post      @relation(fields: [postId], references: [id])
     Profile Profile[]
 }
 
 model Profile {
-    id               Int      @id @default(autoincrement())
+    id               String   @id
     bio              String?
-    subscriptionCost Int      @default(0)
+    subscriptionCost Float    @default(0)
     createdAt        DateTime @default(now())
     updatedAt        DateTime @updatedAt
 
     userId String
     user   User   @relation(fields: [userId], references: [id])
 
-    mediaId      Int?
-    profileImage Media? @relation(fields: [mediaId], references: [id])
+    mediaId      String?
+    profileImage Media?  @relation(fields: [mediaId], references: [id])
 
     comments      Comment[]
     subscribers   Subscription[] @relation(name: "Subscribers")
