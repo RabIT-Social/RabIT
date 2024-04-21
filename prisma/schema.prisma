@@ -17,11 +17,15 @@ datasource db {
 model Post {
     id        Int      @id @default(autoincrement())
     name      String
+    private   Boolean  @default(false)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
+    createdById Int
+    comments    Comment[]
+    reactions   Reaction[]
+    media       Media[]
+    createdBy   Profile    @relation(fields: [createdById], references: [id])
 
     @@index([name])
 }
@@ -61,7 +65,7 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
-    posts         Post[]
+    Profile       Profile[]
 }
 
 model VerificationToken {
@@ -70,4 +74,71 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+model Subscription {
+    id           Int     @id @default(autoincrement())
+    subscriberId Int
+    subscriber   Profile @relation(name: "Subscribers", fields: [subscriberId], references: [id])
+    creatorId    Int
+    creator      Profile @relation(name: "Subscriptions", fields: [creatorId], references: [id])
+
+    @@index([subscriberId, creatorId])
+}
+
+model Comment {
+    id        Int      @id @default(autoincrement())
+    content   String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    postId Int
+    post   Post @relation(fields: [postId], references: [id])
+
+    createdById Int
+    createdBy   Profile @relation(fields: [createdById], references: [id])
+
+    @@index([postId, createdById])
+}
+
+model Reaction {
+    id           String  @id @default(cuid())
+    reactionType String
+    postId       Int
+    post         Post    @relation(fields: [postId], references: [id])
+    creatorId    Int
+    creator      Profile @relation(fields: [creatorId], references: [id])
+
+    @@index([postId, creatorId])
+}
+
+model Media {
+    id        Int      @id @default(autoincrement())
+    url       String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    postId  Int
+    post    Post      @relation(fields: [postId], references: [id])
+    Profile Profile[]
+}
+
+model Profile {
+    id               Int      @id @default(autoincrement())
+    bio              String?
+    subscriptionCost Int      @default(0)
+    createdAt        DateTime @default(now())
+    updatedAt        DateTime @updatedAt
+
+    userId String
+    user   User   @relation(fields: [userId], references: [id])
+
+    mediaId      Int?
+    profileImage Media? @relation(fields: [mediaId], references: [id])
+
+    comments      Comment[]
+    subscribers   Subscription[] @relation(name: "Subscribers")
+    subscriptions Subscription[] @relation(name: "Subscriptions")
+    reactions     Reaction[]
+    posts         Post[]
 }
